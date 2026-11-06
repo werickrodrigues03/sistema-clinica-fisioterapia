@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atendimentos - FisioGestão</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>FisioGestão</h1>
+    <p>Gerenciamento de atendimentos</p>
+</header>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <h2>Menu</h2>
+        <a href="index.html">Dashboard</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="fisioterapeutas.html">Fisioterapeutas</a>
+        <a href="agendamentos.html">Agendamentos</a>
+        <a href="atendimentos.html">Atendimentos</a>
+    </aside>
+
+    <main>
+        <h2 id="tituloFormulario">Novo Atendimento</h2>
+        <p>Registre os dados da sessão realizada.</p>
+
+        <form id="formAtendimento">
+
+            <label>Paciente:</label>
+            <select id="paciente" required>
+                <option value="">Selecione um paciente</option>
+            </select>
+
+            <label>Fisioterapeuta:</label>
+            <select id="fisioterapeuta" required>
+                <option value="">Selecione um fisioterapeuta</option>
+            </select>
+
+            <label>Data:</label>
+            <input type="date" id="data" required>
+
+            <label>Horário:</label>
+            <input type="time" id="horario" required>
+
+            <label>Procedimento realizado:</label>
+            <input type="text" id="procedimento"
+                placeholder="Ex.: Exercícios de mobilidade" required>
+
+            <label>Observações:</label>
+            <textarea id="observacoes"
+                placeholder="Descreva as observações da sessão"></textarea>
+
+            <button type="submit" id="botaoSalvar">
+                Registrar atendimento
+            </button>
+
+            <button type="button" id="botaoCancelar"
+                style="display:none;" onclick="cancelarEdicao()">
+                Cancelar edição
+            </button>
+
+        </form>
+
+        <h2>Atendimentos registrados</h2>
+        <div id="listaAtendimentos"></div>
+    </main>
+</div>
+
+<script>
+const formulario = document.getElementById("formAtendimento");
+const lista = document.getElementById("listaAtendimentos");
+const campoPaciente = document.getElementById("paciente");
+const campoFisioterapeuta = document.getElementById("fisioterapeuta");
+
+let atendimentos = [];
+let indiceEdicao = null;
+
+function carregarOpcoes() {
+    const pacientes = JSON.parse(
+        localStorage.getItem("pacientes") || "[]"
+    );
+
+    const fisioterapeutas = JSON.parse(
+        localStorage.getItem("fisioterapeutas") || "[]"
+    );
+
+    pacientes.forEach((paciente, indice) => {
+        const opcao = document.createElement("option");
+        opcao.value = indice;
+        opcao.textContent = paciente.nome;
+        campoPaciente.appendChild(opcao);
+    });
+
+    fisioterapeutas.forEach((profissional, indice) => {
+        const opcao = document.createElement("option");
+        opcao.value = indice;
+        opcao.textContent = profissional.nome;
+        campoFisioterapeuta.appendChild(opcao);
+    });
+}
+
+function carregarAtendimentos() {
+    atendimentos = JSON.parse(
+        localStorage.getItem("atendimentos") || "[]"
+    );
+
+    lista.innerHTML = "";
+
+    if (atendimentos.length === 0) {
+        lista.textContent = "Nenhum atendimento registrado.";
+        return;
+    }
+
+    atendimentos.forEach((atendimento, indice) => {
+        const item = document.createElement("div");
+
+        const titulo = document.createElement("h3");
+        titulo.textContent = atendimento.paciente;
+
+        const profissional = document.createElement("p");
+        profissional.textContent =
+            "Fisioterapeuta: " + atendimento.fisioterapeuta;
+
+        const data = document.createElement("p");
+        data.textContent = "Data: " + atendimento.data;
+
+        const horario = document.createElement("p");
+        horario.textContent = "Horário: " + atendimento.horario;
+
+        const procedimento = document.createElement("p");
+        procedimento.textContent =
+            "Procedimento: " + atendimento.procedimento;
+
+        const observacoes = document.createElement("p");
+        observacoes.textContent =
+            "Observações: " + atendimento.observacoes;
+
+        const botaoEditar = document.createElement("button");
+        botaoEditar.textContent = "Editar";
+
+        botaoEditar.addEventListener("click", () => {
+            editarAtendimento(indice);
+        });
+
+        const botaoExcluir = document.createElement("button");
+        botaoExcluir.textContent = "Excluir";
+
+        botaoExcluir.addEventListener("click", () => {
+            if (confirm("Deseja excluir este atendimento?")) {
+                atendimentos.splice(indice, 1);
+
+                localStorage.setItem(
+                    "atendimentos",
+                    JSON.stringify(atendimentos)
+                );
+
+                carregarAtendimentos();
+
+                if (indiceEdicao === indice) {
+                    cancelarEdicao();
+                }
+            }
+        });
+
+        item.append(
+            titulo,
+            profissional,
+            data,
+            horario,
+            procedimento,
+            observacoes,
+            botaoEditar,
+            botaoExcluir
+        );
+
+        lista.appendChild(item);
+    });
+}
+
+function encontrarIndice(chave, nome) {
+    const registros = JSON.parse(
+        localStorage.getItem(chave) || "[]"
+    );
+
+    return registros.findIndex(
+        registro => registro.nome === nome
+    );
+}
+
+function editarAtendimento(indice) {
+    const atendimento = atendimentos[indice];
+
+    campoPaciente.value = encontrarIndice(
+        "pacientes", atendimento.paciente
+    );
+
+    campoFisioterapeuta.value = encontrarIndice(
+        "fisioterapeutas", atendimento.fisioterapeuta
+    );
+
+    document.getElementById("data").value = atendimento.data;
+    document.getElementById("horario").value = atendimento.horario;
+    document.getElementById("procedimento").value =
+        atendimento.procedimento;
+    document.getElementById("observacoes").value =
+        atendimento.observacoes;
+
+    indiceEdicao = indice;
+
+    document.getElementById("tituloFormulario").textContent =
+        "Editar Atendimento";
+
+    document.getElementById("botaoSalvar").textContent =
+        "Salvar alterações";
+
+    document.getElementById("botaoCancelar").style.display =
+        "inline-block";
+
+    window.scrollTo(0, 0);
+}
+
+function cancelarEdicao() {
+    indiceEdicao = null;
+    formulario.reset();
+
+    document.getElementById("tituloFormulario").textContent =
+        "Novo Atendimento";
+
+    document.getElementById("botaoSalvar").textContent =
+        "Registrar atendimento";
+
+    document.getElementById("botaoCancelar").style.display =
+        "none";
+}
+
+formulario.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const pacientes = JSON.parse(
+        localStorage.getItem("pacientes") || "[]"
+    );
+
+    const fisioterapeutas = JSON.parse(
+        localStorage.getItem("fisioterapeutas") || "[]"
+    );
+
+    const indicePaciente = Number(campoPaciente.value);
+    const indiceFisioterapeuta = Number(campoFisioterapeuta.value);
+
+    if (
+        !pacientes[indicePaciente] ||
+        !fisioterapeutas[indiceFisioterapeuta]
+    ) {
+        alert("Selecione um paciente e um fisioterapeuta válidos.");
+        return;
+    }
+
+    const atendimento = {
+        paciente: pacientes[indicePaciente].nome,
+        fisioterapeuta: fisioterapeutas[indiceFisioterapeuta].nome,
+        data: document.getElementById("data").value,
+        horario: document.getElementById("horario").value,
+        procedimento: document.getElementById("procedimento").value,
+        observacoes: document.getElementById("observacoes").value
+    };
+
+    if (indiceEdicao === null) {
+        atendimentos.push(atendimento);
+        alert("Atendimento registrado com sucesso!");
+    } else {
+        atendimentos[indiceEdicao] = atendimento;
+        alert("Atendimento atualizado com sucesso!");
+    }
+
+    localStorage.setItem(
+        "atendimentos",
+        JSON.stringify(atendimentos)
+    );
+
+    cancelarEdicao();
+    carregarAtendimentos();
+});
+
+carregarOpcoes();
+carregarAtendimentos();
+</script>
+
+</body>
+</html>
