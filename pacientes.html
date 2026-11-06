@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Pacientes - FisioGestão</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>FisioGestão</h1>
+    <p>Gerenciamento de pacientes</p>
+</header>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <h2>Menu</h2>
+        <a href="index.html">Dashboard</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="#">Fisioterapeutas</a>
+        <a href="#">Agendamentos</a>
+        <a href="#">Atendimentos</a>
+    </aside>
+
+    <main>
+        <h2>Cadastro de Pacientes</h2>
+        <p>Preencha os dados para cadastrar um paciente.</p>
+
+        <form id="formPaciente">
+
+            <label>Nome completo:</label>
+            <input type="text" id="nome"
+                placeholder="Nome do paciente" required>
+
+            <label>Telefone:</label>
+            <input type="tel" id="telefone"
+                placeholder="(00) 00000-0000" required>
+
+            <label>E-mail:</label>
+            <input type="email" id="email"
+                placeholder="email@exemplo.com">
+
+            <label>Data de nascimento:</label>
+            <input type="date" id="nascimento" required>
+
+            <button type="submit">Cadastrar paciente</button>
+
+        </form>
+
+        <h2>Pacientes cadastrados</h2>
+
+        <div id="listaPacientes"></div>
+
+    </main>
+</div>
+
+<script>
+const formulario = document.getElementById("formPaciente");
+const lista = document.getElementById("listaPacientes");
+
+let pacientes = [];
+
+function carregarPacientes() {
+    pacientes = JSON.parse(
+        localStorage.getItem("pacientes") || "[]"
+    );
+
+    lista.innerHTML = "";
+
+    if (pacientes.length === 0) {
+        lista.textContent = "Nenhum paciente cadastrado.";
+        return;
+    }
+
+    pacientes.forEach((paciente, indice) => {
+        const item = document.createElement("div");
+        const nome = document.createElement("h3");
+        const telefone = document.createElement("p");
+        const email = document.createElement("p");
+        const botao = document.createElement("button");
+
+        nome.textContent = paciente.nome;
+        telefone.textContent = "Telefone: " + paciente.telefone;
+        email.textContent = "E-mail: " + paciente.email;
+        botao.textContent = "Excluir";
+
+        botao.addEventListener("click", () => {
+            pacientes.splice(indice, 1);
+            localStorage.setItem(
+                "pacientes",
+                JSON.stringify(pacientes)
+            );
+            carregarPacientes();
+        });
+
+        item.append(nome, telefone, email, botao);
+        lista.appendChild(item);
+    });
+}
+
+formulario.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const paciente = {
+        nome: document.getElementById("nome").value,
+        telefone: document.getElementById("telefone").value,
+        email: document.getElementById("email").value,
+        nascimento: document.getElementById("nascimento").value
+    };
+
+    pacientes.push(paciente);
+
+    localStorage.setItem(
+        "pacientes",
+        JSON.stringify(pacientes)
+    );
+
+    formulario.reset();
+    carregarPacientes();
+
+    alert("Paciente cadastrado com sucesso!");
+});
+
+carregarPacientes();
+</script>
+
+</body>
+</html>
