@@ -26,7 +26,7 @@
     </aside>
 
     <main>
-        <h2>Novo Agendamento</h2>
+        <h2 id="tituloFormulario">Novo Agendamento</h2>
         <p>Preencha os dados da sessão.</p>
 
         <form id="formAgendamento">
@@ -48,9 +48,17 @@
             <input type="time" id="horario" required>
 
             <label>Tipo de atendimento:</label>
-            <input type="text" id="tipo" placeholder="Ex.: Fisioterapia motora" required>
+            <input type="text" id="tipo"
+                placeholder="Ex.: Fisioterapia motora" required>
 
-            <button type="submit">Agendar sessão</button>
+            <button type="submit" id="botaoSalvar">
+                Agendar sessão
+            </button>
+
+            <button type="button" id="botaoCancelar"
+                style="display:none;" onclick="cancelarEdicao()">
+                Cancelar edição
+            </button>
 
         </form>
 
@@ -66,6 +74,7 @@ const campoPaciente = document.getElementById("paciente");
 const campoFisioterapeuta = document.getElementById("fisioterapeuta");
 
 let agendamentos = [];
+let indiceEdicao = null;
 
 function carregarOpcoes() {
     const pacientes = JSON.parse(
@@ -106,30 +115,43 @@ function carregarAgendamentos() {
     agendamentos.forEach((agendamento, indice) => {
         const item = document.createElement("div");
         const titulo = document.createElement("h3");
+        const profissional = document.createElement("p");
         const data = document.createElement("p");
         const horario = document.createElement("p");
         const tipo = document.createElement("p");
+
+        const botaoEditar = document.createElement("button");
         const botaoExcluir = document.createElement("button");
 
         titulo.textContent = agendamento.paciente;
+        profissional.textContent =
+            "Fisioterapeuta: " + agendamento.fisioterapeuta;
         data.textContent = "Data: " + agendamento.data;
         horario.textContent = "Horário: " + agendamento.horario;
         tipo.textContent = "Atendimento: " + agendamento.tipo;
 
-        const profissional = document.createElement("p");
-        profissional.textContent = "Fisioterapeuta: " + agendamento.fisioterapeuta;
-
+        botaoEditar.textContent = "Editar";
         botaoExcluir.textContent = "Excluir";
 
+        botaoEditar.addEventListener("click", () => {
+            editarAgendamento(indice);
+        });
+
         botaoExcluir.addEventListener("click", () => {
-            agendamentos.splice(indice, 1);
+            if (confirm("Deseja realmente excluir este agendamento?")) {
+                agendamentos.splice(indice, 1);
 
-            localStorage.setItem(
-                "agendamentos",
-                JSON.stringify(agendamentos)
-            );
+                localStorage.setItem(
+                    "agendamentos",
+                    JSON.stringify(agendamentos)
+                );
 
-            carregarAgendamentos();
+                carregarAgendamentos();
+
+                if (indiceEdicao === indice) {
+                    cancelarEdicao();
+                }
+            }
         });
 
         item.append(
@@ -138,11 +160,63 @@ function carregarAgendamentos() {
             data,
             horario,
             tipo,
+            botaoEditar,
             botaoExcluir
         );
 
         lista.appendChild(item);
     });
+}
+
+function editarAgendamento(indice) {
+    const agendamento = agendamentos[indice];
+
+    campoPaciente.value = encontrarIndice(
+        "pacientes", agendamento.paciente
+    );
+
+    campoFisioterapeuta.value = encontrarIndice(
+        "fisioterapeutas", agendamento.fisioterapeuta
+    );
+
+    document.getElementById("data").value = agendamento.data;
+    document.getElementById("horario").value = agendamento.horario;
+    document.getElementById("tipo").value = agendamento.tipo;
+
+    indiceEdicao = indice;
+
+    document.getElementById("tituloFormulario").textContent =
+        "Editar Agendamento";
+
+    document.getElementById("botaoSalvar").textContent =
+        "Salvar alterações";
+
+    document.getElementById("botaoCancelar").style.display =
+        "inline-block";
+
+    window.scrollTo(0, 0);
+}
+
+function encontrarIndice(chave, nome) {
+    const registros = JSON.parse(
+        localStorage.getItem(chave) || "[]"
+    );
+
+    return registros.findIndex(registro => registro.nome === nome);
+}
+
+function cancelarEdicao() {
+    indiceEdicao = null;
+    formulario.reset();
+
+    document.getElementById("tituloFormulario").textContent =
+        "Novo Agendamento";
+
+    document.getElementById("botaoSalvar").textContent =
+        "Agendar sessão";
+
+    document.getElementById("botaoCancelar").style.display =
+        "none";
 }
 
 formulario.addEventListener("submit", function(event) {
@@ -159,6 +233,14 @@ formulario.addEventListener("submit", function(event) {
     const indicePaciente = Number(campoPaciente.value);
     const indiceFisioterapeuta = Number(campoFisioterapeuta.value);
 
+    if (
+        !pacientes[indicePaciente] ||
+        !fisioterapeutas[indiceFisioterapeuta]
+    ) {
+        alert("Selecione um paciente e um fisioterapeuta válidos.");
+        return;
+    }
+
     const agendamento = {
         paciente: pacientes[indicePaciente].nome,
         fisioterapeuta: fisioterapeutas[indiceFisioterapeuta].nome,
@@ -167,17 +249,21 @@ formulario.addEventListener("submit", function(event) {
         tipo: document.getElementById("tipo").value
     };
 
-    agendamentos.push(agendamento);
+    if (indiceEdicao === null) {
+        agendamentos.push(agendamento);
+        alert("Agendamento realizado com sucesso!");
+    } else {
+        agendamentos[indiceEdicao] = agendamento;
+        alert("Agendamento atualizado com sucesso!");
+    }
 
     localStorage.setItem(
         "agendamentos",
         JSON.stringify(agendamentos)
     );
 
-    formulario.reset();
+    cancelarEdicao();
     carregarAgendamentos();
-
-    alert("Agendamento realizado com sucesso!");
 });
 
 carregarOpcoes();
