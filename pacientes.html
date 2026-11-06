@@ -46,7 +46,13 @@
             <label>Data de nascimento:</label>
             <input type="date" id="nascimento" required>
 
-            <button type="submit">Cadastrar paciente</button>
+            <button type="submit" id="botaoSalvar">
+                Cadastrar paciente
+            </button>
+
+            <button type="button" id="botaoCancelar" hidden>
+                Cancelar edição
+            </button>
 
         </form>
 
@@ -60,8 +66,11 @@
 <script>
 const formulario = document.getElementById("formPaciente");
 const lista = document.getElementById("listaPacientes");
+const botaoSalvar = document.getElementById("botaoSalvar");
+const botaoCancelar = document.getElementById("botaoCancelar");
 
 let pacientes = [];
+let indiceEdicao = null;
 
 function carregarPacientes() {
     pacientes = JSON.parse(
@@ -80,25 +89,69 @@ function carregarPacientes() {
         const nome = document.createElement("h3");
         const telefone = document.createElement("p");
         const email = document.createElement("p");
-        const botao = document.createElement("button");
+        const botaoEditar = document.createElement("button");
+        const botaoExcluir = document.createElement("button");
 
         nome.textContent = paciente.nome;
         telefone.textContent = "Telefone: " + paciente.telefone;
         email.textContent = "E-mail: " + paciente.email;
-        botao.textContent = "Excluir";
 
-        botao.addEventListener("click", () => {
+        botaoEditar.textContent = "Editar";
+        botaoExcluir.textContent = "Excluir";
+
+        botaoEditar.addEventListener("click", () => {
+            editarPaciente(indice);
+        });
+
+        botaoExcluir.addEventListener("click", () => {
             pacientes.splice(indice, 1);
+
             localStorage.setItem(
                 "pacientes",
                 JSON.stringify(pacientes)
             );
+
+            if (indiceEdicao === indice) {
+                cancelarEdicao();
+            }
+
             carregarPacientes();
         });
 
-        item.append(nome, telefone, email, botao);
+        item.append(
+            nome,
+            telefone,
+            email,
+            botaoEditar,
+            botaoExcluir
+        );
+
         lista.appendChild(item);
     });
+}
+
+function editarPaciente(indice) {
+    const paciente = pacientes[indice];
+
+    document.getElementById("nome").value = paciente.nome;
+    document.getElementById("telefone").value = paciente.telefone;
+    document.getElementById("email").value = paciente.email;
+    document.getElementById("nascimento").value = paciente.nascimento;
+
+    indiceEdicao = indice;
+
+    botaoSalvar.textContent = "Salvar alterações";
+    botaoCancelar.hidden = false;
+
+    formulario.scrollIntoView({ behavior: "smooth" });
+}
+
+function cancelarEdicao() {
+    indiceEdicao = null;
+    formulario.reset();
+
+    botaoSalvar.textContent = "Cadastrar paciente";
+    botaoCancelar.hidden = true;
 }
 
 formulario.addEventListener("submit", function(event) {
@@ -111,18 +164,24 @@ formulario.addEventListener("submit", function(event) {
         nascimento: document.getElementById("nascimento").value
     };
 
-    pacientes.push(paciente);
+    if (indiceEdicao === null) {
+        pacientes.push(paciente);
+        alert("Paciente cadastrado com sucesso!");
+    } else {
+        pacientes[indiceEdicao] = paciente;
+        alert("Paciente atualizado com sucesso!");
+    }
 
     localStorage.setItem(
         "pacientes",
         JSON.stringify(pacientes)
     );
 
-    formulario.reset();
+    cancelarEdicao();
     carregarPacientes();
-
-    alert("Paciente cadastrado com sucesso!");
 });
+
+botaoCancelar.addEventListener("click", cancelarEdicao);
 
 carregarPacientes();
 </script>
