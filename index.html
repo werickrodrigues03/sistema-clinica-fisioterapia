@@ -19,11 +19,11 @@
 
         <aside class="sidebar">
             <h2>Menu</h2>
-            <a href="#">Dashboard</a>
-            <a href="#">Pacientes</a>
-            <a href="#">Fisioterapeutas</a>
-            <a href="#">Agendamentos</a>
-            <a href="#">Atendimentos</a>
+            <a href="index.html">Dashboard</a>
+            <a href="pacientes.html">Pacientes</a>
+            <a href="fisioterapeutas.html">Fisioterapeutas</a>
+            <a href="agendamentos.html">Agendamentos</a>
+            <a href="atendimentos.html">Atendimentos</a>
         </aside>
 
         <main>
@@ -36,28 +36,44 @@
 
                 <div class="card">
                     <h3>Pacientes</h3>
-                    <p>0</p>
+                    <p id="totalPacientes">0</p>
                 </div>
 
                 <div class="card">
                     <h3>Fisioterapeutas</h3>
-                    <p>0</p>
+                    <p id="totalFisioterapeutas">0</p>
                 </div>
 
                 <div class="card">
                     <h3>Agendamentos</h3>
-                    <p>0</p>
+                    <p id="totalAgendamentos">0</p>
                 </div>
 
                 <div class="card">
                     <h3>Atendimentos</h3>
-                    <p>0</p>
+                    <p id="totalAtendimentos">0</p>
                 </div>
 
             </div>
         </main>
 
     </div>
+
+    <script>
+        function atualizarDashboard() {
+            const pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+            const fisioterapeutas = JSON.parse(localStorage.getItem("fisioterapeutas")) || [];
+            const agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+            const atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
+
+            document.getElementById("totalPacientes").textContent = pacientes.length;
+            document.getElementById("totalFisioterapeutas").textContent = fisioterapeutas.length;
+            document.getElementById("totalAgendamentos").textContent = agendamentos.length;
+            document.getElementById("totalAtendimentos").textContent = atendimentos.length;
+        }
+
+        atualizarDashboard();
+    </script>
 
 </body>
 </html>
