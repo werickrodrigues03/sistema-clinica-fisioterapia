@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Fisioterapeutas - FisioGestão</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>FisioGestão</h1>
+    <p>Gerenciamento de fisioterapeutas</p>
+</header>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <h2>Menu</h2>
+        <a href="index.html">Dashboard</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="fisioterapeutas.html">Fisioterapeutas</a>
+        <a href="agendamentos.html">Agendamentos</a>
+        <a href="atendimentos.html">Atendimentos</a>
+    </aside>
+
+    <main>
+        <h2>Cadastro de Fisioterapeutas</h2>
+        <p>Preencha os dados do profissional.</p>
+
+        <form id="formFisioterapeuta">
+
+            <label>Nome completo:</label>
+            <input type="text" id="nome" placeholder="Nome do fisioterapeuta" required>
+
+            <label>Registro CREFITO:</label>
+            <input type="text" id="crefito" placeholder="Número do CREFITO" required>
+
+            <label>Telefone:</label>
+            <input type="tel" id="telefone" placeholder="(00) 00000-0000" required>
+
+            <label>E-mail:</label>
+            <input type="email" id="email" placeholder="email@exemplo.com" required>
+
+            <button type="submit">Cadastrar fisioterapeuta</button>
+
+        </form>
+
+        <h2>Fisioterapeutas cadastrados</h2>
+        <div id="listaFisioterapeutas"></div>
+    </main>
+</div>
+
+<script>
+const formulario = document.getElementById("formFisioterapeuta");
+const lista = document.getElementById("listaFisioterapeutas");
+
+let fisioterapeutas = [];
+
+function carregarFisioterapeutas() {
+    fisioterapeutas = JSON.parse(
+        localStorage.getItem("fisioterapeutas") || "[]"
+    );
+
+    lista.innerHTML = "";
+
+    if (fisioterapeutas.length === 0) {
+        lista.textContent = "Nenhum fisioterapeuta cadastrado.";
+        return;
+    }
+
+    fisioterapeutas.forEach((profissional, indice) => {
+        const item = document.createElement("div");
+        const nome = document.createElement("h3");
+        const crefito = document.createElement("p");
+        const telefone = document.createElement("p");
+        const email = document.createElement("p");
+        const botaoExcluir = document.createElement("button");
+
+        nome.textContent = profissional.nome;
+        crefito.textContent = "CREFITO: " + profissional.crefito;
+        telefone.textContent = "Telefone: " + profissional.telefone;
+        email.textContent = "E-mail: " + profissional.email;
+
+        botaoExcluir.textContent = "Excluir";
+
+        botaoExcluir.addEventListener("click", () => {
+            fisioterapeutas.splice(indice, 1);
+
+            localStorage.setItem(
+                "fisioterapeutas",
+                JSON.stringify(fisioterapeutas)
+            );
+
+            carregarFisioterapeutas();
+        });
+
+        item.append(nome, crefito, telefone, email, botaoExcluir);
+        lista.appendChild(item);
+    });
+}
+
+formulario.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const profissional = {
+        nome: document.getElementById("nome").value,
+        crefito: document.getElementById("crefito").value,
+        telefone: document.getElementById("telefone").value,
+        email: document.getElementById("email").value
+    };
+
+    fisioterapeutas.push(profissional);
+
+    localStorage.setItem(
+        "fisioterapeutas",
+        JSON.stringify(fisioterapeutas)
+    );
+
+    formulario.reset();
+    carregarFisioterapeutas();
+
+    alert("Fisioterapeuta cadastrado com sucesso!");
+});
+
+carregarFisioterapeutas();
+</script>
+
+</body>
+</html>
