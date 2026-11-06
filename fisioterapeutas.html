@@ -43,7 +43,13 @@
             <label>E-mail:</label>
             <input type="email" id="email" placeholder="email@exemplo.com" required>
 
-            <button type="submit">Cadastrar fisioterapeuta</button>
+            <button type="submit" id="botaoSalvar">
+                Cadastrar fisioterapeuta
+            </button>
+
+            <button type="button" id="botaoCancelar" hidden>
+                Cancelar edição
+            </button>
 
         </form>
 
@@ -55,8 +61,11 @@
 <script>
 const formulario = document.getElementById("formFisioterapeuta");
 const lista = document.getElementById("listaFisioterapeutas");
+const botaoSalvar = document.getElementById("botaoSalvar");
+const botaoCancelar = document.getElementById("botaoCancelar");
 
 let fisioterapeutas = [];
+let indiceEdicao = null;
 
 function carregarFisioterapeutas() {
     fisioterapeutas = JSON.parse(
@@ -76,6 +85,7 @@ function carregarFisioterapeutas() {
         const crefito = document.createElement("p");
         const telefone = document.createElement("p");
         const email = document.createElement("p");
+        const botaoEditar = document.createElement("button");
         const botaoExcluir = document.createElement("button");
 
         nome.textContent = profissional.nome;
@@ -83,7 +93,12 @@ function carregarFisioterapeutas() {
         telefone.textContent = "Telefone: " + profissional.telefone;
         email.textContent = "E-mail: " + profissional.email;
 
+        botaoEditar.textContent = "Editar";
         botaoExcluir.textContent = "Excluir";
+
+        botaoEditar.addEventListener("click", () => {
+            editarFisioterapeuta(indice);
+        });
 
         botaoExcluir.addEventListener("click", () => {
             fisioterapeutas.splice(indice, 1);
@@ -93,12 +108,48 @@ function carregarFisioterapeutas() {
                 JSON.stringify(fisioterapeutas)
             );
 
+            if (indiceEdicao === indice) {
+                cancelarEdicao();
+            }
+
             carregarFisioterapeutas();
         });
 
-        item.append(nome, crefito, telefone, email, botaoExcluir);
+        item.append(
+            nome,
+            crefito,
+            telefone,
+            email,
+            botaoEditar,
+            botaoExcluir
+        );
+
         lista.appendChild(item);
     });
+}
+
+function editarFisioterapeuta(indice) {
+    const profissional = fisioterapeutas[indice];
+
+    document.getElementById("nome").value = profissional.nome;
+    document.getElementById("crefito").value = profissional.crefito;
+    document.getElementById("telefone").value = profissional.telefone;
+    document.getElementById("email").value = profissional.email;
+
+    indiceEdicao = indice;
+
+    botaoSalvar.textContent = "Salvar alterações";
+    botaoCancelar.hidden = false;
+
+    formulario.scrollIntoView({ behavior: "smooth" });
+}
+
+function cancelarEdicao() {
+    indiceEdicao = null;
+    formulario.reset();
+
+    botaoSalvar.textContent = "Cadastrar fisioterapeuta";
+    botaoCancelar.hidden = true;
 }
 
 formulario.addEventListener("submit", function(event) {
@@ -111,18 +162,24 @@ formulario.addEventListener("submit", function(event) {
         email: document.getElementById("email").value
     };
 
-    fisioterapeutas.push(profissional);
+    if (indiceEdicao === null) {
+        fisioterapeutas.push(profissional);
+        alert("Fisioterapeuta cadastrado com sucesso!");
+    } else {
+        fisioterapeutas[indiceEdicao] = profissional;
+        alert("Fisioterapeuta atualizado com sucesso!");
+    }
 
     localStorage.setItem(
         "fisioterapeutas",
         JSON.stringify(fisioterapeutas)
     );
 
-    formulario.reset();
+    cancelarEdicao();
     carregarFisioterapeutas();
-
-    alert("Fisioterapeuta cadastrado com sucesso!");
 });
+
+botaoCancelar.addEventListener("click", cancelarEdicao);
 
 carregarFisioterapeutas();
 </script>
