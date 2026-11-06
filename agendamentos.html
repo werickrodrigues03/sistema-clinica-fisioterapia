@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamentos - FisioGestão</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>FisioGestão</h1>
+    <p>Gerenciamento de agendamentos</p>
+</header>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <h2>Menu</h2>
+        <a href="index.html">Dashboard</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="fisioterapeutas.html">Fisioterapeutas</a>
+        <a href="agendamentos.html">Agendamentos</a>
+        <a href="atendimentos.html">Atendimentos</a>
+    </aside>
+
+    <main>
+        <h2>Novo Agendamento</h2>
+        <p>Preencha os dados da sessão.</p>
+
+        <form id="formAgendamento">
+
+            <label>Paciente:</label>
+            <select id="paciente" required>
+                <option value="">Selecione um paciente</option>
+            </select>
+
+            <label>Fisioterapeuta:</label>
+            <select id="fisioterapeuta" required>
+                <option value="">Selecione um fisioterapeuta</option>
+            </select>
+
+            <label>Data:</label>
+            <input type="date" id="data" required>
+
+            <label>Horário:</label>
+            <input type="time" id="horario" required>
+
+            <label>Tipo de atendimento:</label>
+            <input type="text" id="tipo" placeholder="Ex.: Fisioterapia motora" required>
+
+            <button type="submit">Agendar sessão</button>
+
+        </form>
+
+        <h2>Agendamentos cadastrados</h2>
+        <div id="listaAgendamentos"></div>
+    </main>
+</div>
+
+<script>
+const formulario = document.getElementById("formAgendamento");
+const lista = document.getElementById("listaAgendamentos");
+const campoPaciente = document.getElementById("paciente");
+const campoFisioterapeuta = document.getElementById("fisioterapeuta");
+
+let agendamentos = [];
+
+function carregarOpcoes() {
+    const pacientes = JSON.parse(
+        localStorage.getItem("pacientes") || "[]"
+    );
+
+    const fisioterapeutas = JSON.parse(
+        localStorage.getItem("fisioterapeutas") || "[]"
+    );
+
+    pacientes.forEach((paciente, indice) => {
+        const opcao = document.createElement("option");
+        opcao.value = indice;
+        opcao.textContent = paciente.nome;
+        campoPaciente.appendChild(opcao);
+    });
+
+    fisioterapeutas.forEach((profissional, indice) => {
+        const opcao = document.createElement("option");
+        opcao.value = indice;
+        opcao.textContent = profissional.nome;
+        campoFisioterapeuta.appendChild(opcao);
+    });
+}
+
+function carregarAgendamentos() {
+    agendamentos = JSON.parse(
+        localStorage.getItem("agendamentos") || "[]"
+    );
+
+    lista.innerHTML = "";
+
+    if (agendamentos.length === 0) {
+        lista.textContent = "Nenhum agendamento cadastrado.";
+        return;
+    }
+
+    agendamentos.forEach((agendamento, indice) => {
+        const item = document.createElement("div");
+        const titulo = document.createElement("h3");
+        const data = document.createElement("p");
+        const horario = document.createElement("p");
+        const tipo = document.createElement("p");
+        const botaoExcluir = document.createElement("button");
+
+        titulo.textContent = agendamento.paciente;
+        data.textContent = "Data: " + agendamento.data;
+        horario.textContent = "Horário: " + agendamento.horario;
+        tipo.textContent = "Atendimento: " + agendamento.tipo;
+
+        const profissional = document.createElement("p");
+        profissional.textContent = "Fisioterapeuta: " + agendamento.fisioterapeuta;
+
+        botaoExcluir.textContent = "Excluir";
+
+        botaoExcluir.addEventListener("click", () => {
+            agendamentos.splice(indice, 1);
+
+            localStorage.setItem(
+                "agendamentos",
+                JSON.stringify(agendamentos)
+            );
+
+            carregarAgendamentos();
+        });
+
+        item.append(
+            titulo,
+            profissional,
+            data,
+            horario,
+            tipo,
+            botaoExcluir
+        );
+
+        lista.appendChild(item);
+    });
+}
+
+formulario.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const pacientes = JSON.parse(
+        localStorage.getItem("pacientes") || "[]"
+    );
+
+    const fisioterapeutas = JSON.parse(
+        localStorage.getItem("fisioterapeutas") || "[]"
+    );
+
+    const indicePaciente = Number(campoPaciente.value);
+    const indiceFisioterapeuta = Number(campoFisioterapeuta.value);
+
+    const agendamento = {
+        paciente: pacientes[indicePaciente].nome,
+        fisioterapeuta: fisioterapeutas[indiceFisioterapeuta].nome,
+        data: document.getElementById("data").value,
+        horario: document.getElementById("horario").value,
+        tipo: document.getElementById("tipo").value
+    };
+
+    agendamentos.push(agendamento);
+
+    localStorage.setItem(
+        "agendamentos",
+        JSON.stringify(agendamentos)
+    );
+
+    formulario.reset();
+    carregarAgendamentos();
+
+    alert("Agendamento realizado com sucesso!");
+});
+
+carregarOpcoes();
+carregarAgendamentos();
+</script>
+
+</body>
+</html>
